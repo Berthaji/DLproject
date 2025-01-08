@@ -10,15 +10,15 @@ data = []
 happy_data = []
 sad_data = []
 
-# Itera sui file nella directory "happy" e assegna l'etichetta 1
+# Itera sui file nella directory "happy" 
 for file_name in os.listdir(happy_dir):
-    data.append([file_name, 1])
-    happy_data.append([file_name, 1])  # Aggiungi solo i file happy
-
-# Itera sui file nella directory "sad" e assegna l'etichetta 0
-for file_name in os.listdir(sad_dir):
     data.append([file_name, 0])
-    sad_data.append([file_name, 0])  # Aggiungi solo i file sad
+    happy_data.append([file_name, 0])  # Aggiungi solo i file happy
+
+# Itera sui file nella directory "sad" 
+for file_name in os.listdir(sad_dir):
+    data.append([file_name, 1])
+    sad_data.append([file_name, 1])  # Aggiungi solo i file sad
 
 # Creazione di DataFrame
 df_all = pd.DataFrame(data, columns=["Image_Name", "Label"])
