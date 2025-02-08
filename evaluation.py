@@ -7,6 +7,11 @@ import torch
 import numpy as np
 import pandas as pd
 
+import torch
+import torch.nn as nn
+import numpy as np
+import pandas as pd
+
 def evaluate_model(model, test_loader, num_classes, results_csv="test_results.csv", device="cpu"):
     model.eval()  # Set the model to evaluation mode
     correct = 0
@@ -91,12 +96,28 @@ def evaluate_model(model, test_loader, num_classes, results_csv="test_results.cs
         metrics.append("Top-2 Accuracy")
         values.append(top2_accuracy)
 
-    metrics += [f"Accuracy Class {i}" for i in range(num_classes)] + [f"Precision Class {i}" for i in range(num_classes)] + [f"Recall Class {i}" for i in range(num_classes)] + [f"F1 Score Class {i}" for i in range(num_classes)]
+    # Add class-wise metrics
+    metrics += [f"Accuracy Class {i}" for i in range(num_classes)] + \
+               [f"Precision Class {i}" for i in range(num_classes)] + \
+               [f"Recall Class {i}" for i in range(num_classes)] + \
+               [f"F1 Score Class {i}" for i in range(num_classes)]
 
     values += class_accuracies + precision_per_class + recall_per_class + f1_per_class
 
+    # Create DataFrame for metrics
     results = pd.DataFrame({"Metric": metrics, "Value": values})
-    results.to_csv(results_csv, index=False)
+
+    # Create DataFrame for confusion matrix
+    confusion_df = pd.DataFrame(confusion_matrix, 
+                                columns=[f"Pred {i}" for i in range(num_classes)], 
+                                index=[f"True {i}" for i in range(num_classes)])
+
+    # Save everything in a single CSV file
+    with open(results_csv, "w") as f:
+        results.to_csv(f, index=False)
+        f.write("\n")  # Aggiunge una riga vuota
+        confusion_df.to_csv(f)
+
     print(f"Test results saved to: {results_csv}")
 
     return accuracy, class_accuracies, precision_per_class, recall_per_class, f1_per_class, top2_accuracy
