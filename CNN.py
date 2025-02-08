@@ -1,77 +1,81 @@
-import torch.nn.functional as F
-import torch.nn as nn
 import torch
+import pandas as pd
+import os
+from evaluation import validate_model
+import torch.nn as nn
 
-
-# modifiche ai layer della CNN, al dropout e ai pesi della cross-entropy loss nella funzione di test per le performance
-# qui dovrebbe già andare bene
-
-class SimpleCNN(nn.Module):
-    def __init__(self, num_classes=2):
-        super(SimpleCNN, self).__init__()
-        
-        # Primo layer convolutivo
+class CNN_3conv(nn.Module):
+    def __init__(self, num_classes=7):
+        super(CNN_3conv, self).__init__()
         self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
-        
-        # Secondo layer convolutivo
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
-        
-        # Terzo layer convolutivo
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.bn3 = nn.BatchNorm2d(128)
-        
-        # Max pooling per ridurre la dimensione
         self.pool = nn.MaxPool2d(2, 2)
-
-        # Dropout per evitare overfitting
         self.dropout = nn.Dropout(0.5)
-        
-        # Fully connected layer
-        self.fc1 = nn.Linear(128 * 6 * 6, 512)  # Per immagini 48x48
-        self.fc2 = nn.Linear(512, num_classes)
-
+        self.fc1 = nn.Linear(128 * 6 * 6, 256)
+        self.fc2 = nn.Linear(256, num_classes)
+    
     def forward(self, x):
-        # Primo livello convolutivo + batchnorm + ReLU
-        x = self.pool(F.relu(self.bn1(self.conv1(x))))
-        
-        # Secondo livello convolutivo + batchnorm + ReLU
-        x = self.pool(F.relu(self.bn2(self.conv2(x))))
-        
-        # Terzo livello convolutivo + batchnorm + ReLU
-        x = self.pool(F.relu(self.bn3(self.conv3(x))))
-
-        # Flatten
+        x = self.pool(nn.functional.relu(self.bn1(self.conv1(x))))
+        x = self.pool(nn.functional.relu(self.bn2(self.conv2(x))))
+        x = self.pool(nn.functional.relu(self.bn3(self.conv3(x))))
         x = x.view(x.size(0), -1)
-
-        # Fully connected + ReLU
-        x = F.relu(self.fc1(x))
-
-        # Dropout
-        x = self.dropout(x)
-
-        # Output layer
+        x = self.dropout(nn.functional.relu(self.fc1(x)))
         x = self.fc2(x)
         return x
 
-# class SimpleCNN(nn.Module):
-#     def __init__(self, num_classes=2):
-#         super(SimpleCNN, self).__init__()
-#         self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
-#         self.bn1 = nn.BatchNorm2d(32)  # Batch normalization per il primo layer convolutivo
-#         self.pool = nn.MaxPool2d(2, 2)
-#         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-#         self.bn2 = nn.BatchNorm2d(64)  # Batch normalization per il secondo layer convolutivo
-#         self.dropout = nn.Dropout(0.5)
-#         self.fc1 = nn.Linear(64 * 12 * 12, 512)
-#         self.fc2 = nn.Linear(512, num_classes)
+class CNN_4conv(nn.Module):
+    def __init__(self, num_classes=7):
+        super(CNN_4conv, self).__init__()
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
+        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
+        self.bn4 = nn.BatchNorm2d(256)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(256 * 3 * 3, 128) 
+        self.fc2 = nn.Linear(128, num_classes)
+    
+    def forward(self, x):
+        x = self.pool(nn.functional.relu(self.bn1(self.conv1(x))))
+        x = self.pool(nn.functional.relu(self.bn2(self.conv2(x))))
+        x = self.pool(nn.functional.relu(self.bn3(self.conv3(x))))
+        x = self.pool(nn.functional.relu(self.bn4(self.conv4(x))))
+        x = x.view(x.size(0), -1)
+        x = nn.functional.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
 
-#     def forward(self, x):
-#         x = self.pool(F.relu(self.bn1(self.conv1(x))))  # BatchNorm + ReLU
-#         x = self.pool(F.relu(self.bn2(self.conv2(x))))  # BatchNorm + ReLU
-#         x = x.view(x.size(0), -1)
-#         x = F.relu(self.fc1(x))
-#         x = self.dropout(x)
-#         x = self.fc2(x)
-#         return x
+class CNN_2conv(nn.Module):
+    def __init__(self, num_classes=7):
+        super(CNN_2conv, self).__init__()
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(128)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(128 * 12 * 12, 512)
+        self.fc2 = nn.Linear(512, num_classes)
+    
+    def forward(self, x):
+        x = self.pool(nn.functional.relu(self.bn1(self.conv1(x))))
+        x = self.pool(nn.functional.relu(self.bn2(self.conv2(x))))
+        x = x.view(x.size(0), -1)
+        x = nn.functional.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+# tipo di rete neurale da creare
+model_type = "var_1"
+if model_type == "var_1":
+    model = CNN_4conv()
+elif model_type == "var_2":
+    model = CNN_2conv()
+else:
+    model = CNN_3conv()

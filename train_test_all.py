@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, Subset
 from torchvision import transforms, datasets, models
 from torchvision.models import ResNet18_Weights
 from torchvision.transforms import Compose
-from CNN import SimpleCNN
+from CNN import CNN_2conv, CNN_3conv, CNN_4conv
 from train_CNN import train_model_CNN
 from train_TL import train_model_TL
 from utils import check_images, FocalLoss
@@ -26,7 +26,8 @@ def train_and_test_CNN(
         mode="binary", 
         loss_function="crossentropy",
         device="cpu",
-        validate="True"
+        validate="True",
+        model_name="3conv"
         ):
 
     # Definizione delle trasformazioni per le immagini
@@ -67,10 +68,20 @@ def train_and_test_CNN(
         break  # Verifica solo il primo batch
 
     if mode=="binary":
-        model = SimpleCNN(num_classes=2)
+        if model_name == "2conv":
+            model = CNN_2conv(num_classes=2)
+        elif model_name == "3conv":
+            model = CNN_3conv(num_classes=2)
+        elif model_name == "4conv":
+            model = CNN_4conv(num_classes=2)
         weights = torch.tensor([1.0, 1.5], dtype=torch.float32).to(device)  # Peso maggiore per la classe 1 per stabilizzare prestazioni
     if mode=="multiclass":
-        model = SimpleCNN(num_classes=4)
+        if model_name == "2conv":
+            model = CNN_2conv(num_classes=4)
+        elif model_name == "3conv":
+            model = CNN_3conv(num_classes=4)
+        elif model_name == "4conv":
+            model = CNN_4conv(num_classes=4)
         weights = torch.tensor([2.0, 2.5, 1.5, 3.0], dtype=torch.float32).to(device)
 
     # Sposta il modello sul dispositivo (MPS, CUDA, CPU)
