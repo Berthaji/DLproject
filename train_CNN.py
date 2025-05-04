@@ -27,10 +27,10 @@ def train_model_CNN(model, train_loader, val_loader, criterion, optimizer, num_e
             loss.backward()  # Calculate gradients
             optimizer.step()  # Update weights
 
-            running_loss += loss.item()
-            _, predicted = torch.max(outputs, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            running_loss += loss.item() #Update running loss
+            _, predicted = torch.max(outputs, 1) #Find higher probability class
+            total += labels.size(0) #Count images found
+            correct += (predicted == labels).sum().item() #Count img predicted correctly 
 
         train_loss = running_loss / len(train_loader)
         train_accuracy = 100 * correct / total
